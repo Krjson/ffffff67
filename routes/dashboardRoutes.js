@@ -12,13 +12,17 @@ router.get('/', (req, res) => {
     res.render('dashboard', { session: req.session });
 });
 
-router.get('/user-data', (req, res) => {
+router.get('/user-data', async (req, res) => {
   if (req.session.user.role !== 'admin') {
     return res.redirect('/dashboard');
   }
 
-  res.render('userDataForm', { session: req.session });
+  // Ищем запись о пользователе
+  let userDetails = await UserDetails.findOne({ user: req.session.user._id });
+
+  res.render('userDataForm', { session: req.session, userDetails: userDetails });
 });
+
 
 router.get('/profile/:id', async (req, res) => {
   const userDetails = await UserDetails.findOne({ user: req.params.id }).populate('user');
@@ -100,7 +104,7 @@ router.post('/user-data', async (req, res) => {
     }
 
     // Перенаправляем пользователя на страницу с данными всех пользователей
-    res.redirect('/dashboard/user-data');
+    res.redirect('/dashboard');
   });
 });
 

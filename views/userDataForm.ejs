@@ -12,13 +12,13 @@
 
   <form action="/dashboard/user-data" method="post" enctype="multipart/form-data">
     <label for="nickname">Nickname:</label>
-    <input type="text" name="nickname" id="nickname" />
+    <input type="text" name="nickname" id="nickname" value="<%= userDetails.nickname %>" />
 
     <label for="avatarUrl">Avatar:</label>
     <input type="file" name="avatar" id="avatar" />
 
     <label for="about">About:</label>
-    <textarea name="about" id="about"></textarea>
+    <textarea name="about" id="about"><%= userDetails.about %></textarea>
 
     <button type="submit">Add Data</button>
   </form>
