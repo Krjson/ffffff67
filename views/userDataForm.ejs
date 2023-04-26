@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add User Data</title>
+</head>
+
+<body>
+  <h1>Add User Data</h1>
+
+  <form action="/dashboard/user-data" method="post" enctype="multipart/form-data">
+    <label for="nickname">Nickname:</label>
+    <input type="text" name="nickname" id="nickname" />
+
+    <label for="avatarUrl">Avatar:</label>
+    <input type="file" name="avatar" id="avatar" />
+
+    <label for="about">About:</label>
+    <textarea name="about" id="about"></textarea>
+
+    <button type="submit">Add Data</button>
+  </form>
+</body>
+
+</html>
