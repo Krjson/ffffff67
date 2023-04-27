@@ -20,7 +20,14 @@
     <label for="about">About:</label>
     <textarea name="about" id="about"><%= userDetails.about %></textarea>
 
-    <button type="submit">Add Data</button>
+    <label for="avatarUrl">Current Avatar:</label>
+    <% if (userDetails.avatarUrl) { %>
+      <img src="<%= userDetails.avatarUrl %>" alt="Current Avatar">
+      <% } else { %>
+        <p>No avatar uploaded</p>
+        <% } %>
+
+          <button type="submit">Add Data</button>
   </form>
 </body>
 

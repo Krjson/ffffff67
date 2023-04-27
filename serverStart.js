@@ -6,7 +6,7 @@ async function startServer(app) {
   try {
     const uri = await connectToMongoDB();
     await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-    const server = app.listen(process.env.PORT, () => {
+    const server = app.listen(4242, () => {
       console.log('Сервер запущен на порту 3000');
     });
     return server;

@@ -4,27 +4,34 @@ const UserDetails = require('../models/userDetails'); // добавляем им
 const User = require('../models/user'); // добавляем импорт модели
 
 
-router.get('/', (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.redirect('/login');
-    }
+function checkAuth(req, res, next) {
+  if (!req.session.user || (req.session.user.role !== 'admin' && req.session.user.role !== 'user')) {
+    return res.redirect('/login');
+  }
+  next();
+}
 
-    res.render('dashboard', { session: req.session });
+router.get('/', checkAuth, (req, res) => {
+  res.render('dashboard', { session: req.session });
 });
 
-router.get('/user-data', async (req, res) => {
-  if (req.session.user.role !== 'admin') {
-    return res.redirect('/dashboard');
-  }
-
-  // Ищем запись о пользователе
+router.get('/user-data', checkAuth, async (req, res) => {
   let userDetails = await UserDetails.findOne({ user: req.session.user._id });
-
+  if (!userDetails) {
+    // Если у пользователя нет записи в UserDetails, создаем ее
+    userDetails = new UserDetails({
+      user: req.session.user._id,
+      nickname: '',
+      about: '',
+      avatarUrl: ''
+    });
+    await userDetails.save();
+  }
   res.render('userDataForm', { session: req.session, userDetails: userDetails });
 });
 
 
-router.get('/profile/:id', async (req, res) => {
+router.get('/profile/:id', checkAuth, async (req, res) => {
   const userDetails = await UserDetails.findOne({ user: req.params.id }).populate('user');
   if (!userDetails) {
       return res.redirect('/dashboard');
@@ -33,6 +40,27 @@ router.get('/profile/:id', async (req, res) => {
   res.render('userProfile', { session: req.session, userDetails: userDetails });
   
 });
+
+router.post('/profile/:id/delete-avatar', checkAuth, async (req, res) => {
+  const userDetails = await UserDetails.findOne({ user: req.params.id });
+
+  if (!userDetails) {
+    return res.redirect('/dashboard');
+  }
+
+  // Удаляем аватарку из папки, если она есть
+  if (userDetails.avatarUrl) {
+    const filePath = path.join(__dirname, '..', 'public', userDetails.avatarUrl);
+    fs.unlinkSync(filePath);
+  }
+
+  // Удаляем ссылку на аватарку из записи пользователя
+  userDetails.avatarUrl = null;
+  await userDetails.save();
+
+  res.redirect(`/dashboard/profile/${req.params.id}`);
+});
+
 
 
 
@@ -66,10 +94,10 @@ const upload = multer({
   }
 }).single('avatar');
 
-router.post('/user-data', async (req, res) => {
-  if (req.session.user.role !== 'admin') {
-    return res.redirect('/dashboard');
-  }
+const fs = require('fs');
+
+router.post('/user-data', checkAuth, async (req, res) => {
+
 
   // обрабатываем загруженный файл
   upload(req, res, async (err) => {
@@ -87,9 +115,19 @@ router.post('/user-data', async (req, res) => {
     if (userDetails) {
       userDetails.nickname = req.body.nickname;
       userDetails.about = req.body.about;
+
+      // проверяем, был ли загружен новый файл
       if (req.file) {
+        const oldAvatarPath = userDetails.avatarUrl ? path.join(__dirname, '..', 'public', userDetails.avatarUrl) : null;
+
         userDetails.avatarUrl = '/img/avatars/' + req.file.filename;
+
+        // удаляем старый файл, если он есть
+        if (oldAvatarPath && fs.existsSync(oldAvatarPath)) {
+          fs.unlinkSync(oldAvatarPath);
+        }
       }
+
       await userDetails.save();
     } else {
       // Если записи не существует, то создаем ее
@@ -107,6 +145,7 @@ router.post('/user-data', async (req, res) => {
     res.redirect('/dashboard');
   });
 });
+
 
 
 

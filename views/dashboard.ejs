@@ -13,6 +13,8 @@
 
       <% } else if (session.user && session.user.role === 'user') { %>
       <h1>Hello User</h1>
+      <a href="/dashboard/user-data">Add User Data</a>
+      <a href="/dashboard/profile/<%= session.user._id %>">View Profile</a>
     <% } else { %>
       <h1>Please Login</h1>
     <% } %>
